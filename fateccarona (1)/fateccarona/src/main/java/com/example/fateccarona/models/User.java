@@ -37,11 +37,19 @@ public class User {
     @JoinColumn(name = "id_genero")
     private Gender genero;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Vehicle veiculo;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    public void setVeiculo(Vehicle veiculo) {
+        this.veiculo = veiculo;
+        if (veiculo != null && veiculo.getUsuario() != this) {
+            veiculo.setUsuario(this);
+        }
+    }
+
+
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Endereco endereco;
 

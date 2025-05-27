@@ -32,12 +32,14 @@ public class SecurityFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
 
         // Ignorar autenticação para endpoints públicos
-        if (path.startsWith("/cadastrar") || path.startsWith("/genders") || path.startsWith("/cadastro")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        if ((path.equals("/usuario") && method.equalsIgnoreCase("POST")) ||
+                path.startsWith("/cadastrar") || path.startsWith("/genders") || path.startsWith("/cadastro")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
         String token = recoverToken(request);
         System.out.println("SecurityFilter - Token recuperado: " + 
