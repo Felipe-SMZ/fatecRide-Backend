@@ -1,22 +1,10 @@
 package com.example.fateccarona.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "usuarios")
@@ -25,8 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-	
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario")
     private Integer idUsuario;
@@ -34,7 +22,10 @@ public class User {
     private String nome;
     private String sobrenome;
     private String email;
+
+    @JsonIgnore // Evita retornar a senha nas respostas da API
     private String senha;
+
     private String telefone;
     private String foto;
 
@@ -48,6 +39,25 @@ public class User {
 
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
     @JsonManagedReference
+    private Vehicle veiculo;
 
-    private Vehicle veiculo; 
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Endereco endereco;
+
+    public void setEndereco(Endereco endereco) {
+        this.endereco = endereco;
+        if (endereco != null && endereco.getUsuario() != this) {
+            endereco.setUsuario(this);
+        }
+    }
+
+    // Compatibilidade com bibliotecas externas
+    public Integer getId() {
+        return this.idUsuario;
+    }
+
+    public void setId(Integer id) {
+        this.idUsuario = id;
+    }
 }

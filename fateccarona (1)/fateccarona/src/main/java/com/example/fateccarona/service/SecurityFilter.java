@@ -13,45 +13,69 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.fateccarona.models.User;
 import com.example.fateccarona.repository.UserRepository;
 
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class SecurityFilter extends OncePerRequestFilter{
+public class SecurityFilter extends OncePerRequestFilter {
 
-	@Autowired
-	TokenService tokenService;
-	@Autowired
-	UserRepository userRepository;
-	
-	@Override
-	protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException  {
-		 
-		  if (request.getRequestURI().equals("/cadastrar") || request.getRequestURI().equals("/genders")) {
-		        filterChain.doFilter(request, response);
-		        return;
-		    }
-		var token = this.recoverToken(request);
-	       var login = tokenService.validateToke(token);
-	       
-	       if(login != null) {
-	    	   User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
-	       
-	    	   var authories = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-	    	   var authentication = new UsernamePasswordAuthenticationToken(user, null,authories);
-	    	   SecurityContextHolder.getContext().setAuthentication(authentication);
-	       }
-	       
-	       filterChain.doFilter(request, response);
-	}
+    @Autowired
+    private TokenService tokenService;
 
-	private String recoverToken(HttpServletRequest request) {
-		var authHeader = request.getHeader("Authorization");
-		if(authHeader == null) return null;
-		return authHeader.replace("Bearer ", "");
-	}
-	
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // Ignorar autenticação para endpoints públicos
+        if (path.startsWith("/cadastrar") || path.startsWith("/genders") || path.startsWith("/cadastro")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = recoverToken(request);
+        System.out.println("SecurityFilter - Token recuperado: " + 
+            (token != null ? token.substring(0, Math.min(token.length(), 10)) + "..." : "null"));
+
+        if (token == null || token.isEmpty()) {
+            System.out.println("SecurityFilter - Token ausente ou vazio");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String login = tokenService.validateToken(token.trim());
+        if (login != null) {
+            System.out.println("SecurityFilter - Token válido para usuário: " + login);
+            var userOptional = userRepository.findByEmail(login);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+                var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                System.out.println("SecurityFilter - Usuário autenticado: " + user.getEmail());
+            } else {
+                System.out.println("SecurityFilter - Usuário não encontrado no banco: " + login);
+            }
+        } else {
+            System.out.println("SecurityFilter - Token inválido");
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String recoverToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("SecurityFilter - Authorization header ausente ou mal formatado");
+            return null;
+        }
+        // Remove o prefixo "Bearer " e elimina espaços em branco
+        return authHeader.substring(7).trim();
+    }
 }

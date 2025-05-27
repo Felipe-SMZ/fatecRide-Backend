@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.fateccarona.models.Vehicle;
 
-public interface VehicleRepositore extends JpaRepository<Vehicle, Integer>{
+public interface VehicleRepository extends JpaRepository<Vehicle, Integer>{
 
 	  Optional<Vehicle> findByPlaca(String placa);
 	  Optional<Vehicle> findByUsuarioIdUsuario(Integer idUsuario);

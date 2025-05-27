@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.fateccarona.dtos.LoginDTO;
-import com.example.fateccarona.dtos.Response.LoginReposnseDTO;
+import com.example.fateccarona.dtos.Response.LoginResponseDTO;
 import com.example.fateccarona.models.User;
 import com.example.fateccarona.repository.UserRepository;
 import com.example.fateccarona.service.TokenService;
@@ -31,7 +31,7 @@ public class LoginController {
 		User user = this.userRepository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("User not found"));
 		if(passwordEncoder.matches(body.senha(),user.getSenha()) ) {
 			String token = tokenService.generateToken(user);
-			return ResponseEntity.ok(new LoginReposnseDTO(user.getIdUsuario(),token));
+			return ResponseEntity.ok(new LoginResponseDTO(user.getIdUsuario(),token));
 		}
 		
 		return ResponseEntity.badRequest().build();

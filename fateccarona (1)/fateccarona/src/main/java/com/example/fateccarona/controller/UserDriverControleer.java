@@ -32,7 +32,7 @@ import com.example.fateccarona.repository.RideRepository;
 import com.example.fateccarona.repository.RideStatusReoisitory;
 import com.example.fateccarona.repository.UserRepository;
 import com.example.fateccarona.repository.UserTypeRepository;
-import com.example.fateccarona.repository.VehicleRepositore;
+import com.example.fateccarona.repository.VehicleRepository;
 import com.example.fateccarona.service.GeoLocationService;
 
 @RestController
